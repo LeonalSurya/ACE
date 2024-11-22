@@ -1,0 +1,1144 @@
+<%@ Page Language="C#" MasterPageFile="~/FA/MasterFA.Master" AutoEventWireup="true"
+    CodeBehind="AssetDisposalNew.aspx.cs" EnableEventValidation="false" Inherits="AceHospitality.UI.FA.AssetDisposalNew"
+    Title="FA - Transfer Assets [Screen ID : 11B202]" %>
+
+<%@ Register TagPrefix="Localized" Namespace="AceHospitality.Localization" Assembly="AceHospitality.Localization" %>
+<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+    <%--<link rel="Stylesheet" href="../styles/ace.css" type="text/css" />--%>
+
+    <script type="text/javascript" src="../scripts/ace.js"></script>
+
+    <link href="../styles/cal.css" rel="stylesheet" type="text/css" />
+    <link href="../styles/calendarcontrol.css" rel="stylesheet" type="text/css" />
+
+    <script language="javascript" type="text/javascript" src="../scripts/calendar.js"></script>
+    <script language="javascript" type="text/javascript" src="../scripts/cal.js"></script>
+    <script language="javascript" type="text/javascript" src="../scripts/calendar-en.js"></script>
+    <script language="javascript" type="text/javascript" src="../scripts/calendar-setup.js"></script>
+
+    <script language="javascript" type="text/javascript">
+        
+            function getScrollPosition() 
+            {
+                var x, y;
+                var dl = document.getElementById('datalist');
+                var hf = document.getElementById('ctl00_ContentPlaceHolder1_hfXY');
+                if (dl != null)
+                    if(dl.scrollTop)
+                        y =dl.scrollTop; //document.documentElement.scrollTop; 
+                    else
+                        y = document.body.scrollTop;
+                if (hf!=null && !isNaN(y) )
+                    hf.value = y;
+            }
+            
+            function setScrollPosition() 
+            {
+                var y = document.getElementById('ctl00_ContentPlaceHolder1_hfXY');
+                if(y == null)
+                    alert('Bad Hidden Field Id!');
+                else
+                {
+                    var dl = document.getElementById('datalist');
+                    if (dl != null && !isNaN(y.value))
+                        dl.scrollTop=y.value;
+                }
+            }
+            
+            window.setInterval('getScrollPosition()', 300);
+            
+        /*Navigation*/
+        var SelectedRow = null;
+        var SelectedRowIndex = null;
+        var UpperBound = null;
+        var LowerBound = null;
+        var ItemSelectedRow = null;
+        var ItemSelectedRowIndex = null;
+        var ItemUpperBound = null;
+        var ItemLowerBound = null;
+        var ItemTaxSelectedRow = null;
+        var ItemTaxSelectedRowIndex = null;
+        var ItemTaxUpperBound = null;
+        var ItemTaxLowerBound = null;
+        var POTaxSelectedRow = null;
+        var POTaxSelectedRowIndex = null;
+        var POTaxUpperBound = null;
+        var POTaxLowerBound = null;
+
+        window.onload = function() {
+            document.getElementById('ctl00_ContentPlaceHolder1_hfTotalRows').value = parseInt('<%= this.gvData.Rows.Count %>') - 1;
+            UpperBound = parseInt(document.getElementById('ctl00_ContentPlaceHolder1_hfTotalRows').value);
+            LowerBound = 0;
+            SelectedRowIndex = -1;
+            var gvdata = document.getElementById('ctl00_ContentPlaceHolder1_gvData');
+        if (gvdata != null)
+            gvdata.focus();
+        }
+
+        function SelectRow(CurrentRow, RowIndex) {
+            UpperBound = parseInt(document.getElementById('ctl00_ContentPlaceHolder1_hfTotalRows').value);
+            if (SelectedRow == CurrentRow || RowIndex > UpperBound || RowIndex < LowerBound)
+                return;
+
+            if (SelectedRow != null) {
+                SelectedRow.style.backgroundColor = SelectedRow.originalBackgroundColor;
+                SelectedRow.style.color = SelectedRow.originalForeColor;
+            }
+
+            if (CurrentRow != null) {
+                CurrentRow.originalBackgroundColor = CurrentRow.style.backgroundColor;
+                CurrentRow.originalForeColor = CurrentRow.style.color;
+                CurrentRow.style.backgroundColor = '#316AC5';
+                CurrentRow.style.color = '#FFFFFF';
+            }
+
+            SelectedRow = CurrentRow;
+            SelectedRowIndex = RowIndex;
+            setTimeout("SelectedRow.focus();", 0);
+            document.getElementById('ctl00_ContentPlaceHolder1_hfSelectRow').value = SelectedRowIndex;
+        }
+
+        function SelectSibling(e) {
+            var e = e ? e : window.event;
+            var KeyCode = e.which ? e.which : e.keyCode;
+
+            if (KeyCode == 40)
+                SelectRow(SelectedRow.nextSibling, SelectedRowIndex + 1);
+            else if (KeyCode == 38)
+                SelectRow(SelectedRow.previousSibling, SelectedRowIndex - 1);
+            return false;
+        }
+
+        function ItemSelectRow(CurrentRow, RowIndex) {
+            ItemUpperBound = parseInt(document.getElementById('ctl00_ContentPlaceHolder1_hfItemTotalRows').value);
+            if (ItemSelectedRow == CurrentRow || RowIndex > ItemUpperBound || RowIndex < ItemLowerBound)
+                return;
+
+            if (ItemSelectedRow != null) {
+                ItemSelectedRow.style.backgroundColor = ItemSelectedRow.originalBackgroundColor;
+                ItemSelectedRow.style.color = ItemSelectedRow.originalForeColor;
+            }
+
+            if (CurrentRow != null) {
+                CurrentRow.originalBackgroundColor = CurrentRow.style.backgroundColor;
+                CurrentRow.originalForeColor = CurrentRow.style.color;
+                CurrentRow.style.backgroundColor = '#316AC5';
+                CurrentRow.style.color = '#FFFFFF';
+            }
+
+            ItemSelectedRow = CurrentRow;
+            ItemSelectedRowIndex = RowIndex;
+            setTimeout("ItemSelectedRow.focus();", 0);
+            document.getElementById('ctl00_ContentPlaceHolder1_hfItemSelectRow').value = ItemSelectedRowIndex;
+        }
+
+        function ItemSelectSibling(e) {
+            var e = e ? e : window.event;
+            var KeyCode = e.which ? e.which : e.keyCode;
+
+            if (KeyCode == 40)
+                SelectRow(ItemSelectedRow.nextSibling, ItemSelectedRowIndex + 1);
+            else if (KeyCode == 38)
+                SelectRow(ItemSelectedRow.previousSibling, ItemSelectedRowIndex - 1);
+            return false;
+        }
+
+        function ItemTaxSelectRow(CurrentRow, RowIndex) {
+            ItemTaxUpperBound = parseInt(document.getElementById('ctl00_ContentPlaceHolder1_hfItemTaxTotalRows').value);
+            if (ItemTaxSelectedRow == CurrentRow || RowIndex > ItemTaxUpperBound || RowIndex < ItemTaxLowerBound)
+                return;
+
+            if (ItemTaxSelectedRow != null) {
+                ItemTaxSelectedRow.style.backgroundColor = ItemTaxSelectedRow.originalBackgroundColor;
+                ItemTaxSelectedRow.style.color = ItemTaxSelectedRow.originalForeColor;
+            }
+
+            if (CurrentRow != null) {
+                CurrentRow.originalBackgroundColor = CurrentRow.style.backgroundColor;
+                CurrentRow.originalForeColor = CurrentRow.style.color;
+                CurrentRow.style.backgroundColor = '#316AC5';
+                CurrentRow.style.color = '#FFFFFF';
+            }
+
+            ItemTaxSelectedRow = CurrentRow;
+            ItemTaxSelectedRowIndex = RowIndex;
+            setTimeout("ItemTaxSelectedRow.focus();", 0);
+            document.getElementById('ctl00_ContentPlaceHolder1_hfItemTaxSelectRow').value = ItemTaxSelectedRowIndex;
+        }
+
+        function ItemTaxSelectSibling(e) {
+            var e = e ? e : window.event;
+            var KeyCode = e.which ? e.which : e.keyCode;
+
+            if (KeyCode == 40)
+                SelectRow(ItemTaxSelectedRow.nextSibling, ItemTaxSelectedRowIndex + 1);
+            else if (KeyCode == 38)
+                SelectRow(ItemTaxSelectedRow.previousSibling, ItemTaxSelectedRowIndex - 1);
+            return false;
+        }
+
+        function POTaxSelectRow(CurrentRow, RowIndex) {
+            POTaxUpperBound = parseInt(document.getElementById('ctl00_ContentPlaceHolder1_hfPOTaxTotalRows').value);
+            if (POTaxSelectedRow == CurrentRow || RowIndex > POTaxUpperBound || RowIndex < POTaxLowerBound)
+                return;
+
+            if (POTaxSelectedRow != null) {
+                POTaxSelectedRow.style.backgroundColor = POTaxSelectedRow.originalBackgroundColor;
+                POTaxSelectedRow.style.color = POTaxSelectedRow.originalForeColor;
+            }
+
+            if (CurrentRow != null) {
+                CurrentRow.originalBackgroundColor = CurrentRow.style.backgroundColor;
+                CurrentRow.originalForeColor = CurrentRow.style.color;
+                CurrentRow.style.backgroundColor = '#316AC5';
+                CurrentRow.style.color = '#FFFFFF';
+            }
+
+            POTaxSelectedRow = CurrentRow;
+            POTaxSelectedRowIndex = RowIndex;
+            setTimeout("POTaxSelectedRow.focus();", 0);
+            document.getElementById('ctl00_ContentPlaceHolder1_hfPOTaxSelectRow').value = POTaxSelectedRowIndex;
+        }
+
+        function POTaxSelectSibling(e) {
+            var e = e ? e : window.event;
+            var KeyCode = e.which ? e.which : e.keyCode;
+
+            if (KeyCode == 40)
+                SelectRow(POTaxSelectedRow.nextSibling, POTaxSelectedRowIndex + 1);
+            else if (KeyCode == 38)
+                SelectRow(POTaxSelectedRow.previousSibling, POTaxSelectedRowIndex - 1);
+            return false;
+        }
+
+        var SSelectedRow = null;
+        var SSelectedRowIndex = null;
+        var SUpperBound = null;
+        var SLowerBound = null;
+
+        function SSelectRow(CurrentRow, RowIndex) {
+            SUpperBound = parseInt(document.getElementById('ctl00_ContentPlaceHolder1_hfHelpTotalRows').value);
+            if (SSelectedRow == CurrentRow || RowIndex > SUpperBound || RowIndex < SLowerBound)
+                return;
+
+            if (SSelectedRow != null) {
+                SSelectedRow.style.backgroundColor = SSelectedRow.originalBackgroundColor;
+                SSelectedRow.style.color = SSelectedRow.originalForeColor;
+            }
+
+            if (CurrentRow != null) {
+                CurrentRow.originalBackgroundColor = CurrentRow.style.backgroundColor;
+                CurrentRow.originalForeColor = CurrentRow.style.color;
+                CurrentRow.style.backgroundColor = '#316AC5';
+                CurrentRow.style.color = '#FFFFFF';
+            }
+
+            SSelectedRow = CurrentRow;
+            SSelectedRowIndex = RowIndex;
+            setTimeout("SSelectedRow.focus();", 0);
+            document.getElementById('ctl00_ContentPlaceHolder1_hfHelpSelectRow').value = SSelectedRowIndex;
+        }
+
+        function SSelectSibling(e) {
+            var e = e ? e : window.event;
+            var KeyCode = e.which ? e.which : e.keyCode;
+
+            if (KeyCode == 40)
+                SSelectRow(SSelectedRow.nextSibling, SSelectedRowIndex + 1);
+            else if (KeyCode == 38)
+                SSelectRow(SSelectedRow.previousSibling, SSelectedRowIndex - 1);
+            return false;
+        }
+
+        function DiscountCalculation() {
+            var Qty;
+            var Price;
+            var DiscountPer;
+            var Discount;
+
+            if (isNaN(document.getElementById('ctl00_ContentPlaceHolder1_txtQty').value) || document.getElementById('ctl00_ContentPlaceHolder1_txtQty').value == '') {
+                Qty = 0;
+            }
+            else {
+                Qty = parseFloat(document.getElementById('ctl00_ContentPlaceHolder1_txtQty').value);
+            }
+
+            if (isNaN(document.getElementById('ctl00_ContentPlaceHolder1_txtItemPrice').value) || document.getElementById('ctl00_ContentPlaceHolder1_txtItemPrice').value == '') {
+                Price = 0;
+            }
+            else {
+                Price = parseFloat(document.getElementById('ctl00_ContentPlaceHolder1_txtItemPrice').value);
+            }
+
+            if (isNaN(document.getElementById('ctl00_ContentPlaceHolder1_txtDiscountPer').value) || document.getElementById('ctl00_ContentPlaceHolder1_txtDiscountPer').value == '') {
+                DiscountPer = 0;
+                Discount = 0;
+            }                            
+            else {
+                DiscountPer = parseFloat(document.getElementById('ctl00_ContentPlaceHolder1_txtDiscountPer').value);                
+                Discount = (Qty * Price) * (DiscountPer / 100);
+            }            
+            if (Discount == 0) {            
+                document.getElementById('ctl00_ContentPlaceHolder1_txtItemDiscount').value = '';
+            }
+            else {
+                document.getElementById('ctl00_ContentPlaceHolder1_txtItemDiscount').value = Discount;
+            }
+            
+        }        
+
+        function Calculation() 
+        {            
+            var Qty;
+            var Price;
+            var Discount;
+            var GrossTotal;
+            var Tax;            
+            var Total;
+            
+            if (isNaN(document.getElementById('ctl00_ContentPlaceHolder1_txtQty').value) || document.getElementById('ctl00_ContentPlaceHolder1_txtQty').value == '') 
+            {
+                Qty = 0;
+            }
+            else 
+            {
+                Qty = parseFloat(document.getElementById('ctl00_ContentPlaceHolder1_txtQty').value);
+            }
+
+            if (isNaN(document.getElementById('ctl00_ContentPlaceHolder1_txtItemPrice').value) || document.getElementById('ctl00_ContentPlaceHolder1_txtItemPrice').value == '') 
+            {
+                Price = 0;
+            }
+            else 
+            {
+                Price = parseFloat(document.getElementById('ctl00_ContentPlaceHolder1_txtItemPrice').value);
+            }
+
+            //CFact = document.getElementById('ctl00_ContentPlaceHolder1_ddlUnits')[document.getElementById('ctl00_ContentPlaceHolder1_ddlUnits').selectedIndex].value;
+            
+            if (isNaN(document.getElementById('ctl00_ContentPlaceHolder1_txtDiscountPer').value) || document.getElementById('ctl00_ContentPlaceHolder1_txtDiscountPer').value == '') 
+            {
+                if (isNaN(document.getElementById('ctl00_ContentPlaceHolder1_txtItemDiscount').value) || document.getElementById('ctl00_ContentPlaceHolder1_txtItemDiscount').value == '') 
+                {
+                    Discount = 0;
+                }
+                else
+                {
+                    Discount = parseFloat(document.getElementById('ctl00_ContentPlaceHolder1_txtItemDiscount').value);
+                }
+                GrossTotal = (Qty * Price) - Discount;
+            }
+            else
+            {
+                DiscountPer = parseFloat(document.getElementById('ctl00_ContentPlaceHolder1_txtDiscountPer').value);
+                document.getElementById('ctl00_ContentPlaceHolder1_txtItemDiscount').value=(Qty * Price) * (DiscountPer / 100);
+                GrossTotal = (Qty * Price) - ((Qty * Price) * (DiscountPer / 100));
+            }
+            document.getElementById('ctl00_ContentPlaceHolder1_txtItemGross').value = GrossTotal;
+
+            if (isNaN(document.getElementById('ctl00_ContentPlaceHolder1_txtItemTax').value) || document.getElementById('ctl00_ContentPlaceHolder1_txtItemTax').value == '') 
+            {
+                Tax = 0;
+            }
+            else 
+            {
+                Tax = parseFloat(document.getElementById('ctl00_ContentPlaceHolder1_txtItemTax').value);
+            }            
+            Total = GrossTotal + Tax;
+            document.getElementById('ctl00_ContentPlaceHolder1_txtTotal').value = Total;            
+        }
+
+        function POTotalCalc() {                        
+            var Discount;
+            var GrossTotal;
+            var Tax;
+            var NetAmount;
+
+            if (isNaN(document.getElementById('ctl00_ContentPlaceHolder1_txtGross').value) || document.getElementById('ctl00_ContentPlaceHolder1_txtGross').value == '') {
+                GrossTotal = 0;
+            }
+            else {
+                GrossTotal = parseFloat(document.getElementById('ctl00_ContentPlaceHolder1_txtGross').value);
+            }
+
+            if (isNaN(document.getElementById('ctl00_ContentPlaceHolder1_txtDiscount').value) || document.getElementById('ctl00_ContentPlaceHolder1_txtDiscount').value == '') {
+                Discount = 0;
+            }
+            else {
+                Discount = parseFloat(document.getElementById('ctl00_ContentPlaceHolder1_txtDiscount').value);
+            }
+
+            if (isNaN(document.getElementById('ctl00_ContentPlaceHolder1_txtTaxAmount').value) || document.getElementById('ctl00_ContentPlaceHolder1_txtTaxAmount').value == '') {
+                Tax = 0;
+            }
+            else {
+                Tax = parseFloat(document.getElementById('ctl00_ContentPlaceHolder1_txtTaxAmount').value);
+            }
+
+            NetAmount = GrossTotal - Discount + Tax;
+            document.getElementById('ctl00_ContentPlaceHolder1_txtNetAmount').value = NetAmount;
+        }
+        
+         var screenHeight = screen.height;
+        if (screenHeight <= 768) {
+          document.write('<link rel="Stylesheet" href="../styles/ace.css" type="text/css" media="screen" />');
+        }
+        else {
+          document.write('<link rel="Stylesheet" href="../styles/ace1024.css" type="text/css" media="screen" />');
+        }
+        
+        
+    function DisableSaveControl()
+    {
+         var btnSavePO = document.getElementById('ctl00_ContentPlaceHolder1_btnSavePO');
+        if (btnSavePO != null)
+            btnSavePO.disabled = true;
+        
+        var btnSaveNSend = document.getElementById('ctl00_ContentPlaceHolder1_btnSaveNSend');
+        if (btnSaveNSend != null)
+            btnSaveNSend.disabled = true;
+            
+        var objbtn;
+        objbtn = document.getElementById('ctl00_ContentPlaceHolder1_btnHdnSave');
+        objbtn.click();
+    }
+    
+    function DisableSaveNSendControl()
+    {
+         var btnSavePO = document.getElementById('ctl00_ContentPlaceHolder1_btnSavePO');
+        if (btnSavePO != null)
+            btnSavePO.disabled = true;
+        
+        var btnSaveNSend = document.getElementById('ctl00_ContentPlaceHolder1_btnSaveNSend');
+        if (btnSaveNSend != null)
+            btnSaveNSend.disabled = true;
+            
+        var objbtn;
+        objbtn = document.getElementById('ctl00_ContentPlaceHolder1_btnHdnSaveNPost');
+        objbtn.click();
+    }
+    function getItemDetails()
+    {
+        var objbtn;
+        objbtn = document.getElementById('ctl00_ContentPlaceHolder1_btnGetItemName');
+        objbtn.click();
+    }
+    function getSuppDetails()
+    {
+        var objbtn;
+        objbtn = document.getElementById('ctl00_ContentPlaceHolder1_btnGetSuppName');
+        objbtn.click();
+    }
+        
+    </script>
+
+    <%--<link rel="Stylesheet" href="../styles/ace.css" type="text/css" />--%>
+    <style type="text/css">
+        
+        div.divForm
+        {
+            position: absolute;
+            text-align: center;
+            vertical-align: middle;
+        }
+    </style>
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+    <%--<asp:UpdatePanel ID="UpdatePanel1" runat="server">
+        <ContentTemplate>--%>
+    <div>
+        <div class="HdrStyle" style="width: 99.8%; height: 25px;">
+            <table style="width: 100%;" align="center" cellpadding="0" cellspacing="0" border="0">
+                <tr height="25px">
+                    <td background="../images/landingimgLeft.GIF" width="47%" class="PanelHeader" align="center">
+                        <asp:ImageButton id="imgFav" runat="server" OnClick="imgFav_Click" />
+                        <Localized:LocalizedLiteral ID="lblPurchaseOrder" runat="server" Key="AssetsTransfer"
+                            Colon="False" />
+                    </td>
+                    <td background="../images/landingimg.gif" width="6%">
+                    </td>
+                    <td background="../images/landingbg.GIF" width="47%" valign="middle" align="center">
+                        <asp:LinkButton ID="lnkAttach" runat="server" Text="Attach" ToolTip="" CssClass="RptLink"
+                            OnClick="Attach_Click" ValidationGroup="Val"></asp:LinkButton>&nbsp;&nbsp;
+                        <asp:LinkButton ID="lnkPrint" runat="server" Text="Print" ToolTip="" CssClass="RptLink"
+                            OnClick="Print_Click" ValidationGroup="Val"></asp:LinkButton>&nbsp;&nbsp;
+                        <asp:LinkButton ID="lnkLog" runat="server" Text="Log" ToolTip="" CssClass="RptLink" 
+                            OnClick="Log_Click" ValidationGroup="Val"></asp:LinkButton>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <asp:Panel ID="pnlPOList" runat="server" DefaultButton="btnSearch">
+            <div id="divPOList" class="ContainerStyle1" style="width: 100%; height: 100%;">
+                <table style="width: 100%; height: 100%;" align="center">
+                    <tr>
+                        <td valign="middle">
+                            <table style="width: 95%;" align="center" border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td colspan="3">
+                                        <asp:ValidationSummary ID="vsPOList" ValidationGroup="ValPOList" runat="server" DisplayMode="BulletList"
+                                            ShowMessageBox="true" ShowSummary="false" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblFromDate" runat="server" Key="FromDate" Colon="true" />
+                                    </td>
+                                    <td class="TDStyleL" style="width: 90px">
+                                        <asp:TextBox ID="txtFromDate" runat="server" MaxLength="10" CssClass="txtStyle" TabIndex="1"
+                                            Width="60"></asp:TextBox>
+                                        <img alt="" onclick="return showCalendar('ctl00_ContentPlaceHolder1_txtFromDate', '%m/%d/%Y', '','','Br');"
+                                            src="../images/calendar.gif" />
+                                        <Localized:LocalizedRequiredFieldValidator ID="rfvtxtFromDate" SetFocusOnError="true"
+                                            Key="ReqFrom" ControlToValidate="txtFromDate" ValidationGroup="ValPOList" Colon="False"
+                                            Display="None" runat="Server" />
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblToDate" runat="server" Key="ToDate" Colon="true" />
+                                    </td>
+                                    <td class="TDStyleL" style="width: 90px">
+                                        <asp:TextBox ID="txtToDate" runat="server" MaxLength="10" CssClass="txtStyle" TabIndex="2"
+                                            Width="60"></asp:TextBox>
+                                        <img alt="" onclick="return showCalendar('ctl00_ContentPlaceHolder1_txtToDate', '%m/%d/%Y', '','','Br');"
+                                            src="../images/calendar.gif" />
+                                        <Localized:LocalizedRequiredFieldValidator ID="rdftxtToDate" SetFocusOnError="true"
+                                            Key="ReqTo" ControlToValidate="txtToDate" ValidationGroup="ValPOList" Colon="False"
+                                            Display="None" runat="Server" />
+                                    </td>
+                                   <td class="TDStyleL" colspan="2">
+                                            <Localized:LocalizedLiteral ID="lblSearch" runat="server" Key="SearchFor" Colon="false" />&nbsp;
+                                            <asp:Label ID="lblField" runat="server" Text=""></asp:Label>&nbsp;
+                                       
+                                            <asp:TextBox ID="txtSearch" runat="server" MaxLength="25" Width="210px" CssClass="txtStyle"
+                                                TabIndex="3"></asp:TextBox>
+                                            <asp:Button ID="btnSearch" runat="server" Text="Get" CssClass="btnSearch" AccessKey="C"
+                                                TabIndex="4" Width="35px" ValidationGroup="ValPOList" OnClick="btnSearch_Click" />
+                                        </td>
+                                       <td class="TDStyleL" style="width:auto;" visible="false">
+                                                <asp:Label ID="lblPoStatua" Visible="false" runat="server" Text="PoStatus"></asp:Label>&nbsp;                                                
+                                                <asp:DropDownList Width="110px" Visible="false" runat="server" ID="ddlPoStatus" CssClass="ddlStyle"
+                                                AppendDataBoundItems="false" Enabled="true"  TabIndex="5">
+                                                <asp:ListItem Value="" Text="All" />
+                                                <asp:ListItem Value="P" Text="Partially Received" />
+                                                <asp:ListItem Value="O" Text="Open" />
+                                                <asp:ListItem Value="C" Text="Closed" />
+                                                <asp:ListItem Value="U" Text="Approved" />
+                                                <asp:ListItem Value="X" Text="Cancel" />
+                                                </asp:DropDownList>       
+                                        </td>                                                                            
+                                    <%--<td class="TDStyleR">
+                                        <Localized:LocalizedLiteral ID="lblLocation" runat="server" Key="Location" Colon="False" />                                                                            
+                                    </td>
+                                    <td class="TDStyleL">    
+                                        <asp:TextBox ID="txtLocation" runat="server" MaxLength="10" CssClass="txtStyle" Width="85px" TabIndex="11"></asp:TextBox>                                            
+                                        <asp:ImageButton ID="imgLocation" runat="server" ImageAlign="Middle" Width="17px" OnClick="imgLocation_Click" Height="17px" ImageUrl="~/images/search5.jpg" />
+                                        <asp:Label ID="lblLocName" runat="server"></asp:Label>
+                                    </td>--%>
+                                    </tr>
+                                    
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div id="datalist" class="ContainerStyle" onclick="javascript:getScrollPosition();">
+                <table width="100%">
+                    <tr>
+                        <td colspan="3">
+                            <asp:GridView ID="gvData" CssClass="GridStyle" runat="server" CellPadding="6" ForeColor="#333333"
+                                EmptyDataText="No Data" AllowSorting="true" ShowHeader="true" TabIndex="5" AutoGenerateColumns="false"
+                                OnRowDataBound="gvData_RowDataBound" OnRowCreated="gvData_RowCreated" OnSorting="gvData_Sorting">
+                                <Columns>
+                                    <asp:BoundField DataField="AutoNum" HeaderText="AutoNum" ItemStyle-HorizontalAlign="Left" SortExpression="AutoNum" />
+                                    <%--<asp:TemplateField HeaderText="" ItemStyle-HorizontalAlign="Left">
+                                        <ItemTemplate>
+                                            <asp:CheckBox ID="chkSelect" runat="server" CssClass="txtStyle" TabIndex="5" Width="50px" Style="text-align: right;"></asp:CheckBox>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>--%>
+                                    <asp:BoundField DataField="DocNo" HeaderText="DocNo" ItemStyle-HorizontalAlign="Left" SortExpression="DocNo"/>
+                                    <asp:BoundField DataField="Date" HeaderText="Date" ItemStyle-HorizontalAlign="Left" SortExpression="Date"/>
+                                    <asp:BoundField DataField="Name" HeaderText="Supplier" ItemStyle-HorizontalAlign="left" SortExpression="Name"/>
+                                    <asp:BoundField DataField="DESCR" HeaderText="ItemName" ItemStyle-HorizontalAlign="Left" SortExpression="DESCR"/>
+                                    <asp:BoundField DataField="Details" HeaderText="Detail" ItemStyle-HorizontalAlign="Left" SortExpression="Details"/>
+                                     <asp:BoundField DataField="Approval" HeaderText="Status" ItemStyle-HorizontalAlign="Left" SortExpression="Approval"/>
+                                    <asp:BoundField DataField="UserID" HeaderText="User" ItemStyle-HorizontalAlign="Left" SortExpression="UserID"/>
+                                </Columns>
+                                <PagerStyle BackColor="#2461BF" ForeColor="White" HorizontalAlign="Center" />
+                                <HeaderStyle CssClass="HeaderStyle" />
+                                <EditRowStyle CssClass="RowStyle" />
+                                <AlternatingRowStyle CssClass="AlternatingRowStyle" />
+                                <FooterStyle BackColor="#507CD1" Font-Bold="True" ForeColor="White" />
+                                <RowStyle CssClass="RowStyle" />
+                            </asp:GridView>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="HdrStyle" style="width: 99.8%; height: 40px;">
+                <table align="center">
+                    <tr>
+                        <td>
+                            <asp:Button ID="btnInsert" runat="server" Text="Create" CssClass="btn" AccessKey="C"
+                                TabIndex="6" OnClick="btnInsert_Click" onmouseover="this.style.color='gold'"
+                                onmouseout="this.style.color='black'" />
+                        </td>
+                        <td>
+                            <asp:Button ID="btnEdit" runat="server" Text="Edit" CssClass="btn" AccessKey="E"
+                                TabIndex="7" OnClick="btnEdit_Click" onmouseover="this.style.color='gold'" onmouseout="this.style.color='black'" />
+                        </td>
+                        <td>
+                            <asp:Button ID="btnDelete" runat="server" Text="Delete" CssClass="btn" AccessKey="D"
+                                TabIndex="8" OnClick="btnDelete_Click" onmouseover="this.style.color='gold'"
+                                onmouseout="this.style.color='black'" />
+                        </td>
+                        <td>
+                            <asp:Button ID="btnView" runat="server" Text="View" CssClass="btn" AccessKey="S"
+                                TabIndex="9" OnClick="btnView_Click" onmouseover="this.style.color='gold'" onmouseout="this.style.color='black'" />
+                        </td>
+                        <td>
+                            <asp:Button ID="btnJV" runat="server" Text="JV" Visible="false" CssClass="btn" AccessKey="E" TabIndex="10"
+                                 onmouseover="this.style.color='gold'" onmouseout="this.style.color='black'" />
+                        </td>
+                        <td>
+                            <asp:Button ID="btnPrint" runat="server" Text="Print" Visible="false" CssClass="btn" AccessKey="E"
+                                TabIndex="11" onmouseover="this.style.color='gold'" onmouseout="this.style.color='black'" />
+                        </td>
+                        <td>
+                            <asp:Button ID="btnEMail" runat="server" Text="EMail" Visible="false" CssClass="btn" AccessKey="E"
+                                TabIndex="11" onmouseover="this.style.color='gold'" onmouseout="this.style.color='black'" />
+                        </td>
+                        <td>
+                            <asp:Button ID="btnClose" runat="server" Text="Exit" CssClass="btn" AccessKey="X"
+                                TabIndex="6" OnClick="btnClose_Click" onmouseover="this.style.color='gold'" onmouseout="this.style.color='black'" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </asp:Panel>
+        <asp:Panel ID="pnlPO" runat="server" Visible="false">
+            <div id="divPO" class="ContainerStyle" style="height:300px">
+                <table style="width: 100%; height: 100%;" align="center">
+                    <tr>
+                        <td valign="middle">
+                            <table style="width: 65%;" align="center" border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td colspan="3">
+                                        <asp:ValidationSummary ID="vsPODet" ValidationGroup="ValPODet" runat="server" DisplayMode="BulletList"
+                                            ShowMessageBox="true" ShowSummary="false" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblReference" runat="server" Key="Reference" Colon="True" />
+                                    </td>
+                                    <td class="TDStyleL">
+                                        &nbsp;
+                                    </td>
+                                    <td>
+                                        <asp:TextBox ID="txtReference" runat="server" MaxLength="4" CssClass="txtStyle" Width="85px"
+                                            TabIndex="7"></asp:TextBox>
+                                        <asp:ImageButton ID="imgbtnReference" runat="server" OnClick="imgbtnReference_Click" ImageAlign="Middle" Width="17px"
+                                             Height="17px" ImageUrl="~/images/search5.jpg"  />
+                                    </td>
+                                    
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblInvRef" runat="server" Key="InvRef" Colon="True" />
+                                    </td>
+                                    <td class="TDStyleR">
+                                        &nbsp;&nbsp;
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtInvRef" runat="server" MaxLength="10" CssClass="txtStyle" Width="85px"
+                                            TabIndex="8"></asp:TextBox>
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblDepr" runat="server" Key="Depriciation" Colon="true" />
+                                    </td>
+                                   
+                                    <td class="TDStyleL" >
+                                        <asp:TextBox ID="txtDepr" runat="server" MaxLength="10" CssClass="txtStyle" 
+                                             Width="85px" TabIndex="9"></asp:TextBox>                                        
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblDocNo" runat="server" Key="Document#" Colon="True" />
+                                    </td>
+                                    <td class="TDStyleL">
+                                        &nbsp;
+                                    </td>
+                                    <td>
+                                        <asp:TextBox ID="txtDocNo" runat="server" MaxLength="10" CssClass="txtStyle" Width="85px"
+                                            TabIndex="10"></asp:TextBox>                                                                              
+                                    </td>                                                                       
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblPurDate" runat="server" Key="PurDate" Colon="true" />
+                                    </td>
+                                    <td class="TDStyleR">
+                                        &nbsp;&nbsp;&nbsp;
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtPurDate" runat="server" MaxLength="1" CssClass="txtStyle" TabIndex="11"
+                                             Width="85px"></asp:TextBox>
+                                        <img alt="" onclick="return showCalendar('ctl00_ContentPlaceHolder1_txtPurDate', '%m/%d/%Y', '','','Tr');"
+                                            src="../images/calendar.gif" />    
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblStartDate" runat="server" Key="StartDate" Colon="true" />
+                                    </td>
+                                   
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtStartDate" runat="server" MaxLength="10" CssClass="txtStyle" TabIndex="16"
+                                             Width="85px"></asp:TextBox>
+                                        <img alt="" onclick="return showCalendar('ctl00_ContentPlaceHolder1_txtStartDate', '%m/%d/%Y', '','','Tr');"
+                                            src="../images/calendar.gif" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblDate" runat="server" Key="Date" Colon="true" />
+                                    </td>
+                                    <td class="TDStyleL">
+                                        &nbsp;
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtDate" runat="server" MaxLength="10" CssClass="txtStyle" TabIndex="16"
+                                             Width="85px"></asp:TextBox>
+                                        <img alt="" onclick="return showCalendar('ctl00_ContentPlaceHolder1_txtDate', '%m/%d/%Y', '','','Tr');"
+                                            src="../images/calendar.gif" />
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblQty" runat="server" Key="Qty" Colon="true" />
+                                    </td>
+                                    <td class="TDStyleR">
+                                        &nbsp;&nbsp;&nbsp;
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtQty" runat="server" MaxLength="10" CssClass="txtStyle" TabIndex="16"
+                                             Width="85px"></asp:TextBox>                                       
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblCalculate" runat="server" Key="CalcOnce" Colon="true" />
+                                    </td>
+                                    
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtCalc" runat="server" MaxLength="10" CssClass="txtStyle" TabIndex="16"
+                                             Width="85px"></asp:TextBox>
+                                        <asp:Label ID="lblMonth" runat="server" Text="Month" Width="150px"></asp:Label>                                              
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblItemCode" runat="server" Key="ItemCode" Colon="True" />
+                                    </td>
+                                    <td class="TDStyleL">
+                                        &nbsp;
+                                    </td>
+                                    <td>
+                                        <asp:TextBox ID="txtItemCode" runat="server" MaxLength="10" CssClass="txtStyle" Width="85px"
+                                            TabIndex="10"></asp:TextBox>
+                                         <asp:ImageButton ID="imgbtnItemCode" runat="server" ImageAlign="Middle" Width="17px"
+                                            OnClick="imgbtnItemCode_Click" Height="17px" ImageUrl="~/images/search5.jpg" />
+                                        <Localized:LocalizedRequiredFieldValidator ID="rfttxtItemCode" SetFocusOnError="true"
+                                            Key="ReqItemCode" ControlToValidate="txtItemCode" ValidationGroup="ValPODet" Colon="False"
+                                            Display="None" runat="Server" />                                          
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblUnitPrice" runat="server" Key="UnitPrice" Colon="true" />
+                                    </td>
+                                    <td class="TDStyleR">
+                                        &nbsp;&nbsp;&nbsp;
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtUnitPrice" runat="server" MaxLength="10" CssClass="txtStyle" TabIndex="16"
+                                             Width="85px"></asp:TextBox>                                       
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblCity" runat="server" Key="City" Colon="True" />
+                                    </td>
+                                    
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtCity" runat="server" MaxLength="10" CssClass="txtStyle" Width="85px"
+                                            TabIndex="10"></asp:TextBox>
+                                         <asp:ImageButton ID="imgbtnCity" runat="server" ImageAlign="Middle" Width="17px"
+                                            OnClick="imgbtnCity_Click" Height="17px" ImageUrl="~/images/search5.jpg" />
+                                        <%--<Localized:LocalizedRequiredFieldValidator ID="rfttxtCity" SetFocusOnError="true"
+                                            Key="ReqCity" ControlToValidate="txtCity" ValidationGroup="ValPODet" Colon="False"
+                                            Display="None" runat="Server" />--%>                                          
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="TDStyleL">
+                                        
+                                    </td>
+                                    <td class="TDStyleL">
+                                        &nbsp;
+                                    </td>
+                                    <td>
+                                        <asp:Label ID="lblItemDesc" runat="server" Width="150px"></asp:Label>                                         
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblActValue" runat="server" Key="ActValue" Colon="True" />
+                                    </td>
+                                    <td class="TDStyleR">
+                                        &nbsp;&nbsp;&nbsp;
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtActValue" runat="server" MaxLength="10" CssClass="txtStyle" Width="85px" TabIndex="16"></asp:TextBox>                                       
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblState" runat="server" Key="States" Colon="True" />
+                                    </td>
+                                    
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtState" runat="server" MaxLength="10" CssClass="txtStyle" Width="85px"
+                                            TabIndex="10"></asp:TextBox>
+                                         <asp:ImageButton ID="imgbtnState" runat="server" ImageAlign="Middle" Width="17px"
+                                            OnClick="imgbtnState_Click" Height="17px" ImageUrl="~/images/search5.jpg" />
+                                        <%--<Localized:LocalizedRequiredFieldValidator ID="rfttxtState" SetFocusOnError="true"
+                                            Key="ReqState" ControlToValidate="txtState" ValidationGroup="ValPODet" Colon="False"
+                                            Display="None" runat="Server" />  --%>                                        
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblDept" runat="server" Key="Department" Colon="True" />
+                                    </td>
+                                    <td class="TDStyleL">
+                                        &nbsp;
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtDept" runat="server" MaxLength="10" CssClass="txtStyle" Width="85px"
+                                            TabIndex="10"></asp:TextBox>
+                                         <asp:ImageButton ID="imgbtnDept" runat="server" ImageAlign="Middle" Width="17px"
+                                            OnClick="imgbtnDept_Click" Height="17px" ImageUrl="~/images/search5.jpg" />
+                                        <%--<Localized:LocalizedRequiredFieldValidator ID="rfttxtDept" SetFocusOnError="true"
+                                            Key="ReqDept" ControlToValidate="txtDept" ValidationGroup="ValPODet" Colon="False"
+                                            Display="None" runat="Server" />    --%>                                      
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblScrapValue" runat="server" Key="ScrapValue" Colon="true" />
+                                    </td>
+                                    <td class="TDStyleR">
+                                        &nbsp;&nbsp;&nbsp;
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtScrapValue" runat="server" MaxLength="10" Width="85px" CssClass="txtStyle" TabIndex="16"></asp:TextBox>                                       
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblCountry" runat="server" Key="Country" Colon="True" />
+                                    </td>
+                                    
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtCountry" runat="server" MaxLength="10" CssClass="txtStyle" Width="85px"
+                                            TabIndex="10"></asp:TextBox>
+                                         <asp:ImageButton ID="imgbtnCountry" runat="server" ImageAlign="Middle" Width="17px"
+                                            OnClick="imgbtnCountry_Click" Height="17px" ImageUrl="~/images/search5.jpg" />
+                                        <%--<Localized:LocalizedRequiredFieldValidator ID="rfttxtCountry" SetFocusOnError="true"
+                                            Key="ReqCountry" ControlToValidate="txtCountry" ValidationGroup="ValPODet" Colon="False"
+                                            Display="None" runat="Server" />    --%>                                      
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblLocation" runat="server" Key="Location" Colon="True" />
+                                    </td>
+                                    <td class="TDStyle">
+                                        &nbsp;
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtLocation" runat="server" MaxLength="10" CssClass="txtStyle" Width="85px"
+                                            TabIndex="10"></asp:TextBox>
+                                         <asp:ImageButton ID="imgbtnLocation" runat="server" ImageAlign="Middle" Width="17px"
+                                            OnClick="imgbtnLocn_Click" Height="17px" ImageUrl="~/images/search5.jpg" />
+                                         <%--<asp:Label ID="lblLocnName" runat="server" Width="150px"></asp:Label>--%>
+                                       <%-- <Localized:LocalizedRequiredFieldValidator ID="rftLocation" SetFocusOnError="true"
+                                            Key="ReqLocn" ControlToValidate="txtLocation" ValidationGroup="ValPODet" Colon="False"
+                                            Display="None" runat="Server" />--%>                                          
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblAssetLife" runat="server" Key="AssetLife" Colon="true" />
+                                    </td>
+                                    <td class="TDStyleR">
+                                        &nbsp;&nbsp;&nbsp;
+                                    </td>
+                                    <td class="TDStyleL">
+                                        <asp:TextBox ID="txtAssetLife" runat="server" MaxLength="10" CssClass="txtStyle" TabIndex="16"
+                                            Width="60"></asp:TextBox>                                       
+                                    </td>
+                                    <td class="TDStyleL">
+                                        
+                                    </td>
+                                   
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedCheckBox ID="chkActive" runat="server" Key="InActive" TabIndex="12" />                                        
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblSupplierID" runat="server" Key="SupplierID" Colon="true" />
+                                    </td>
+                                    <td class="TDStyleL">
+                                        &nbsp;
+                                    </td>
+                                    <td colspan="7" class="TDStyleL">
+                                        <asp:TextBox ID="txtSuppID" runat="server" MaxLength="70" CssClass="txtStyle" TabIndex="21"
+                                            Width="300"></asp:TextBox>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblDetails" runat="server" Key="Details" Colon="true" />
+                                    </td>
+                                    <td class="TDStyleL">
+                                        &nbsp;
+                                    </td>
+                                    <td colspan="7" class="TDStyleL">
+                                        <asp:TextBox ID="txtDetails" runat="server" MaxLength="50" CssClass="txtStyle" TabIndex="21"
+                                            Width="475"></asp:TextBox>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblMethod" runat="server" Key="Method" Colon="true" />
+                                    </td>
+                                    <td class="TDStyleL">
+                                        &nbsp;
+                                    </td>
+                                    <td class="TDStyleL" colspan="7">
+                                        <asp:DropDownList ID="ddlMethod" runat="server" Width="475px" CssClass="ddlStyle"
+                                            TabIndex="36" AutoPostBack="true">
+                                            <asp:ListItem Text="Straight Line Method" Value="SLM"></asp:ListItem>
+                                        </asp:DropDownList>
+                                    </td>
+                                </tr>
+                                <%--<tr>
+                                    <td class="TDStyleL">
+                                        <Localized:LocalizedLiteral ID="lblRemarks" runat="server" Key="Remarks" Colon="true" />
+                                    </td>
+                                    <td class="TDStyleL">
+                                        &nbsp;
+                                    </td>
+                                    <td class="TDStyleL" colspan="7">
+                                        <asp:TextBox ID="txtRemarks" Visible="false" runat="server" MaxLength="100" CssClass="txtStyle" TabIndex="23"
+                                            Width="475"></asp:TextBox>
+                                    </td>
+                                </tr>--%>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+ <%--  <%--         <div id="datalistBB" class="ContainerStyle11">
+              <td colspan ="4">
+                    <table style="width: 100%; height: 100%;" align="center" border="1" cellpadding="0" cellspacing="0">
+                       <%-- <tr style="font-weight:bold">                            
+                            <td align="center">
+                               <Localized:LocalizedLiteral ID="lblAccNo" runat="server" Key="AccountNo" Colon="True" />
+                            </td>
+                            
+                            <td align="center">
+                               <Localized:LocalizedLiteral ID="lblDescr" runat="server" Key="Description" Colon="True" />
+                            </td>
+                           
+                            <td align="center">
+                                <Localized:LocalizedLiteral ID="lblParam" runat="server" Key="Parameter" Colon="True" />
+                            </td>                            
+                        </tr>--%>
+                       <tr>
+                            <td >
+                             <asp:TextBox ID="txtDept1" runat="server" MaxLength="10" CssClass="txtStyle" Width="50px"
+                                    TabIndex="48"></asp:TextBox>
+                             <%--   <asp:TextBox ID="txtAcc1" runat="server" MaxLength="8" CssClass="txtStyle" Width="50px"
+                                    TabIndex="49"></asp:TextBox>   --%>                           
+                                <%--<asp:ImageButton ID="imgbtnAccount1" runat="server" ImageAlign="Middle" Width="17px"
+                                    Height="17px" ImageUrl="~/images/search5.jpg" OnClick="imgbtnAccount1_Click" />
+                            </td>
+                            <%--<td style="width:30%" align="center">
+                                <asp:Label ID="lblDecr1" runat="server" Text="Depreciation A/c" Width="150px"></asp:Label>                                         
+                            </td>
+                             <td style="width:30%" align="center">
+                                <asp:Label ID="lblParam1" runat="server" Text="" Width="150px"></asp:Label>                                         
+                            </td>--%>
+                        </tr>
+                        <tr>
+                            <td style="width:30%" align="center">
+                                <asp:TextBox ID="txtDept2" runat="server" MaxLength="10" CssClass="txtStyle" Width="50px"
+                                    TabIndex="48"></asp:TextBox>
+                                <asp:TextBox ID="txtAcc2" runat="server" MaxLength="8" CssClass="txtStyle" Width="50px"
+                                    TabIndex="49"></asp:TextBox>                               
+                                <%--<asp:ImageButton ID="imgbtnAccount2" runat="server" ImageAlign="Middle" Width="17px"
+                                    Height="17px" ImageUrl="~/images/search5.jpg" OnClick="imgbtnAccount2_Click" />--%>
+                            </td>
+                            <%-- <td style="width:30%" align="center">
+                                <asp:Label ID="lblDecr2" runat="server" Text="Provision for Depreciation A/c" Width="150px"></asp:Label>                                         
+                            </td>
+                             <td style="width:30%" align="center">
+                                <asp:Label ID="lblParam2" runat="server" Text="" Width="150px"></asp:Label>                                         
+                            </td>--%>
+                        </tr>
+                        <tr>
+                            <td style="width:30%" align="center">
+                                <asp:TextBox ID="txtDept3" runat="server" MaxLength="10" CssClass="txtStyle" Width="50px"
+                                    TabIndex="48"></asp:TextBox>
+                                <asp:TextBox ID="txtAcc3" runat="server" MaxLength="8" CssClass="txtStyle" Width="50px"
+                                    TabIndex="49"></asp:TextBox>                               
+                               <%-- <asp:ImageButton ID="imgbtnAccount3" runat="server" ImageAlign="Middle" Width="17px"
+                                    Height="17px" ImageUrl="~/images/search5.jpg" OnClick="imgbtnAccount3_Click" />--%>
+                            </td>
+                             <td style="width:30%" align="center">
+                                <asp:Label ID="lblDecr3" runat="server" Text="" Width="150px"></asp:Label>                                         
+                            </td>
+                             <td style="width:30%" align="center">
+                                <asp:Label ID="lblParam3" runat="server" Text="" Width="150px"></asp:Label>                                         
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:30%" align="center">
+                                <asp:TextBox ID="txtDept4" runat="server" MaxLength="10" CssClass="txtStyle" Width="50px"
+                                    TabIndex="48"></asp:TextBox>
+                                <asp:TextBox ID="txtAcc4" runat="server" MaxLength="8" CssClass="txtStyle" Width="50px"
+                                    TabIndex="49"></asp:TextBox>                               
+                                <%--<asp:ImageButton ID="imgbtnAccount4" runat="server" ImageAlign="Middle" Width="17px"
+                                    Height="17px" ImageUrl="~/images/search5.jpg" OnClick="imgbtnAccount4_Click" />--%>
+                            </td>
+                             <td style="width:30%" align="center">
+                                <asp:Label ID="lblDecr4" runat="server" Text="" Width="150px"></asp:Label>                                         
+                            </td>
+                             <td style="width:30%" align="center">
+                                <asp:Label ID="lblParam4" runat="server" Text="" Width="150px"></asp:Label>                                         
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:30%" align="center">
+                                <asp:TextBox ID="txtDept5" runat="server" MaxLength="10" CssClass="txtStyle" Width="50px"
+                                    TabIndex="48"></asp:TextBox>
+                                <asp:TextBox ID="txtAcc5" runat="server" MaxLength="8" CssClass="txtStyle" Width="50px"
+                                    TabIndex="49"></asp:TextBox>                               
+                                <%--<asp:ImageButton ID="imgbtnAccount5" runat="server" ImageAlign="Middle" Width="17px"
+                                    Height="17px" ImageUrl="~/images/search5.jpg" OnClick="imgbtnAccount5_Click" />--%>
+                            </td>
+                             <td style="width:30%" align="center">
+                                <asp:Label ID="lblDecr5" runat="server" Text="" Width="150px"></asp:Label>                                         
+                            </td>
+                             <td style="width:30%" align="center">
+                                <asp:Label ID="lblParam5" runat="server" Text="" Width="150px"></asp:Label>                                         
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:30%" align="center">
+                                <asp:TextBox ID="txtDept6" runat="server" MaxLength="10" CssClass="txtStyle" Width="50px"
+                                    TabIndex="48"></asp:TextBox>
+                                <asp:TextBox ID="txtAcc6" runat="server" MaxLength="8" CssClass="txtStyle" Width="50px"
+                                    TabIndex="49"></asp:TextBox>                               
+                                <%--<asp:ImageButton ID="imgbtnAccount6" runat="server" ImageAlign="Middle" Width="17px"
+                                    Height="17px" ImageUrl="~/images/search5.jpg" OnClick="imgbtnAccount6_Click" />--%>
+                            </td>
+                             <td style="width:30%" align="center">
+                                <asp:Label ID="lblDecr6" runat="server" Text="" Width="150px"></asp:Label>                                         
+                            </td>
+                             <td style="width:30%" align="center">
+                                <asp:Label ID="lblParam6" runat="server" Text="" Width="150px"></asp:Label>                                         
+                            </td>
+                        </tr>
+                    </table>
+                </td> 
+            </div>
+            
+            <div class="HdrStyle" style="width: 99.8%; height: 40px;">
+                <table align="center">
+                    <tr>                        
+                        <td>
+                            <asp:Button ID="btnSave" runat="server" Text="Save" CssClass="btn" AccessKey="S"
+                                TabIndex="34" OnClick="btnSave_Click" ValidationGroup="ValPODet" onmouseover="this.style.color='gold'"
+                                onmouseout="this.style.color='black'" />
+                           <input id="btnHdnSave" runat="server" type="button" style="display:none" onserverclick="btnSave_Click" /> 
+                        </td>
+                         <td>
+                            <asp:Button ID="btnSaveNSend" runat="server" Text="Save & Send" CssClass="btn" AccessKey="S"
+                                   TabIndex="42" OnClick="btnSaveNSend_Click" ValidationGroup="ValPODet" onmouseover="this.style.color='gold'" onmouseout="this.style.color='black'" />
+                            <input id="btnHdnSaveNPost" runat="server" type="button" style="display:none" onserverclick="btnSaveNSend_Click" />
+                        </td>                      
+                        <td>
+                            <asp:Button ID="btnExit" runat="server" Text="Exit" CssClass="btn" AccessKey="E"
+                                TabIndex="35" OnClick="btnExit_Click" onmouseover="this.style.color='gold'" onmouseout="this.style.color='black'" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </asp:Panel>        
+       <%-- <asp:Panel ID="pnlHelpGrid" runat="server" Visible="false" DefaultButton="btnHelpSearch">
+            <div class="HdrStyle" style="width: 99.8%;">
+                <table align="center" border="0" style="width: 100%;">
+                    <tr>
+                        <td style="width: 15%;">
+                            &nbsp;
+                        </td>
+                        <td style="width: 15%;" class="TDStyleR" valign="middle">
+                            <Localized:LocalizedLiteral ID="lblHelpSearch" runat="server" Key="SearchFor" Colon="True" />
+                        </td>
+                        <td style="width: 25%;" class="TDStyleR" valign="middle">
+                            <asp:Label ID="lblHelpField" runat="server" Text=""></asp:Label>&nbsp;
+                        </td>
+                        <td class="TDStyleL" valign="middle">
+                            <asp:TextBox ID="txtHelpSearch" runat="server" MaxLength="25" Width="200px" CssClass="txtStyle"
+                                TabIndex="23"></asp:TextBox>
+                            <asp:Button ID="btnHelpSearch" runat="server" Text="Search" CssClass="btnSearch"
+                                AccessKey="C" TabIndex="11" OnClick="btnHelpSearch_Click" onmouseover="this.style.color='gold'"
+                                onmouseout="this.style.color='black'" />
+                        </td>
+                    </tr>
+                </table>--%>
+          <%--  </d--%>
+           <%-- <div id="searchlist" class="ContainerStyle">
+                <asp:GridView ID="gvHelpData" CssClass="GridStyle" runat="server" CellPadding="6"
+                    ForeColor="#333333" OnRowDataBound="gvHelpData_RowDataBound" EmptyDataText="No Data"
+                    OnRowCreated="gvHelpData_RowCreated" AllowSorting="true" ShowHeader="true" OnSelectedIndexChanged="gvHelpData_SelectedIndexChanged"
+                    OnSorting="gvHelpData_Sorting" TabIndex="25">
+                    <PagerStyle BackColor="#2461BF" ForeColor="White" HorizontalAlign="Center" />
+                    <HeaderStyle CssClass="HeaderStyle" />
+                    <EditRowStyle CssClass="RowStyle" />
+                    <AlternatingRowStyle CssClass="AlternatingRowStyle" />
+                    <FooterStyle BackColor="#507CD1" Font-Bold="True" ForeColor="White" />
+                    <RowStyle CssClass="RowStyle" />
+            </asp:GridView>
+            </div>--%>
+         <%--   <div class="HdrStyle" style="width: 99.8%; height: 40px;">
+                <table align="center">
+                    <tr>
+                        <td>
+                            <asp:Button ID="btnHelpSelect" runat="server" Text="Select" CssClass="btn" OnClick="btnHelpSelect_Click"
+                                TabIndex="26" onmouseover="this.style.color='gold'" onmouseout="this.style.color='black'" />
+                        </td>
+                        <td>
+                            <asp:Button ID="btnHelpCancel" runat="server" Text="Cancel" CssClass="btn" OnClick="btnHelpCancel_Click"
+                                TabIndex="27" onmouseover="this.style.color='gold'" onmouseout="this.style.color='black'" />
+                        </td>
+                    </tr>
+                </table>
+            </div>--%>
+       <%-- </asp:Panel>--%>
+        
+        <asp:HiddenField ID="hfAutoId" runat="server" />
+        <asp:HiddenField ID="hfSelectRow" runat="server" />
+        <asp:HiddenField ID="hfTotalRows" runat="server" />
+        <asp:HiddenField ID="hfHelpId" runat="server" />
+        <asp:HiddenField ID="hfHelpSelectRow" runat="server" />
+        <asp:HiddenField ID="hfHelpTotalRows" runat="server" />
+        <asp:HiddenField ID="hfHelpDataTable" runat="server" />
+        <asp:HiddenField ID="hfItemSelectRow" runat="server" />
+        <asp:HiddenField ID="hfItemTotalRows" runat="server" />
+        <asp:HiddenField ID="hfItemTaxSelectRow" runat="server" />
+        <asp:HiddenField ID="hfItemTaxTotalRows" runat="server" />
+        <asp:HiddenField ID="hfPOTaxSelectRow" runat="server" />
+        <asp:HiddenField ID="hfPOTaxTotalRows" runat="server" />
+        <asp:HiddenField ID="hfSlNo" runat="server" />
+        <asp:HiddenField ID="hfLocn" runat="server" />
+        <asp:HiddenField ID="hfItemcode" runat="server" />
+        <asp:HiddenField ID="hfCompID" runat="server" />
+         <asp:HiddenField ID="hfContract" runat="server" />
+              <asp:HiddenField ID="hfStatus" runat="server" />
+    </div>
+    <%--</ContentTemplate>
+    </asp:UpdatePanel>--%>
+</asp:Content>
